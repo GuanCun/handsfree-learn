@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>操纵带有脸部变形的表情符号</title>
+  <link rel="stylesheet" href="../handsfree@8.5.1/handsfree.css" />
+  <script src="../handsfree@8.5.1/handsfree.js"></script>
+
+  <style>
+    .emoji {
+      font-size: 100px;
+      /* Set the size of emoji here */
+    }
+  </style>
+</head>
+
+<body>
+  <button onclick="handsfree.start()">Start Webcam</button>
+  <button onclick="handsfree.stop()">Stop Webcam</button>
+
+  <div id="emoji" class="emoji">😐</div>
+  <script>
+    const $emoji = document.querySelector('#emoji')
+    window.handsfree = new Handsfree({ showDebug: true, weboji: true });
+    console.log(handsfree.model)
+
+    handsfree.use('emojify', (pointer, instance) => {
+      let emoji = '😐'
+      let isFlipped = false
+
+      // Instance.head.state contains a list of activated morphs
+      // We just map it to a shorthand here so we don't have to type it all out each time
+      let state = pointer.weboji.state
+
+      // Let's start with some easy ones
+      if (state.mouthOpen) emoji = '😃'
+      if (state.browsUp) emoji = '🙄'
+      if (state.smile) emoji = '🙂'
+
+      // Some emojis can be made by combining activations
+      if (state.eyesClosed && state.pursed) emoji = '😙'
+      if (state.mouthOpen && state.eyesClosed && state.browsUp) emoji = '😂'
+      if (!state.mouthClosed && state.pursed && state.browsUp) emoji = '😲'
+
+      // Here we flip the emoji if the user smirks the other way
+      // A smirk happens if and only if a user smiles to one side
+      if (state.smirk && state.browsUp) {
+        if (state.smileLeft) isFlipped = true
+        emoji = '😏'
+      }
+
+      // Aplly transforms
+      // $emoji.style.transform = `perspective(1000px)
+      //       rotateX(${-head.rotation[0]}rad)
+      //       rotateY(${head.rotation[1]}rad)
+      //       rotateZ(${-head.rotation[2]}rad)
+      //       scale(${isFlipped ? -1 : 1}, 1)`
+
+      // Show the emoji
+      $emoji.innerText = emoji
+    })
+  </script>
+
+  <!-- 更难的组合 -->
+  <!-- <script>
+    // Create a new  Use one instance for each camera
+    window.handsfree = new window.Handsfree({})
+    const $emoji = document.querySelector('#emoji')
+
+    // Disable click and vert scroll
+    Handsfree.disable('head.pointer')
+    Handsfree.disable('head.vertScroll')
+
+    // Create a simple plugin that displays pointer values on every frame
+    Handsfree.use('emojify', ({ head }) => {
+      let emoji = '😐'
+      let isFlipped = false
+      let state = head.state
+
+      if (state.pursed && state.mouthClosed) emoji = '😗'
+      if (state.browsUp) emoji = '🙄'
+      if (state.smile) emoji = '🙂'
+      if (state.browsUpDown && !state.pursed) {
+        if (state.browRightUp) isFlipped = true
+        emoji = '🤨'
+      }
+      if (state.smirk && state.browsUp) {
+        if (state.smileLeft) isFlipped = true
+        emoji = '😏'
+      }
+      if (state.browsDown) emoji = '😠'
+      if (state.browsDown && state.pursed) emoji = '😡'
+      if (state.eyesClosed) emoji = '😑'
+      if (state.eyesClosed && state.pursed) emoji = '😙'
+      if (state.eyesClosed && state.pursed && !state.mouthClosed) emoji = '😴'
+      if (state.eyesClosed && state.smile) emoji = '😊'
+      if (state.mouthOpen) emoji = '😃'
+      if (state.mouthOpen && state.eyesClosed) emoji = '😫'
+      if (state.mouthOpen && state.eyesClosed && state.browsUp) emoji = '😂'
+      if (state.eyesClosed && state.browsUpDown) {
+        if (state.eyebrowLeftRight) isFlipped = true
+        emoji = '🤤'
+      }
+      if (!state.mouthClosed && state.pursed) emoji = '😮'
+      if (!state.mouthClosed && state.pursed && state.browsUp) emoji = '😲'
+
+      // Aplly transforms
+      $emoji.style.transform = `perspective(1000px) rotateX(${-head.rotation[0]}rad) rotateY(${head.rotation[1]}rad) rotateZ(${-head.rotation[2]}rad) scale(${isFlipped ? -1 : 1}, 1)`
+
+      // Show the emoji
+      $emoji.innerText = emoji
+    })
+  </script> -->
+</body>
+
+</html>
